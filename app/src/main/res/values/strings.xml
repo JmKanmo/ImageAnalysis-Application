@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">이 사진은 뭘까</string>
+    <string name="main_title">이미지를 분석해보아요:)</string>
+    <string name="please_upload_image">이미지를 업로드해주세요:)</string>
+    <string name="image_upload_button_text">이미지업로드</string>
+    <string name="camera">카메라</string>
+    <string name="gallery">갤러리</string>
+</resources>
