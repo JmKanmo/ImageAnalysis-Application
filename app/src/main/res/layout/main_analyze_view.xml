@@ -22,6 +22,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/please_upload_image"
+                    android:gravity="center"
                     android:textColor="@color/Black_Color"
                     android:textStyle="bold"
                     android:textSize="@dimen/text_size"

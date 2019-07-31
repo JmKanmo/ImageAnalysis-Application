@@ -57,9 +57,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkGalleryPermission() {
-        PermissionUtility().requestPermission(
-            this, GALLERY_PERMISSION_REQUEST, Manifest.permission.READ_EXTERNAL_STORAGE
-        )
+        if (PermissionUtility().requestPermission(
+                this, GALLERY_PERMISSION_REQUEST, Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+        ) {
+            openGallery()
+        }
+    }
+
+    private fun openGallery() {
+        val intent = Intent().apply {
+            setType("image/*")
+            setAction(Intent.ACTION_GET_CONTENT)
+        }
+        startActivityForResult(Intent.createChooser(intent, "Choose a pic"), GALLERY_PERMISSION_REQUEST)
     }
 
     private fun openCamera() {
@@ -84,20 +95,25 @@ class MainActivity : AppCompatActivity() {
                     FileProvider.getUriForFile(this, applicationContext.packageName + ".provider", createCameraFile())
                 uploadImage(photoUri)
             }
+            GALLERY_PERMISSION_REQUEST -> {
+                data?.let {
+                    uploadImage(it.data)
+                }
+            }
         }
     }
 
     private fun uploadImage(imageUri: Uri) {
         var bitmap: Bitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageUri)
-        if(bitmap.width>bitmap.height) bitmap = rotateImage(bitmap,-90f)
+        if (bitmap.width > bitmap.height) bitmap = rotateImage(bitmap, -90f)
         uploaded_image.setImageBitmap(bitmap)
     }
 
 
-    private fun rotateImage(bitmap: Bitmap , degree:Float):Bitmap{
+    private fun rotateImage(bitmap: Bitmap, degree: Float): Bitmap {
         val matrix = Matrix()
         matrix.postRotate(degree)
-        return Bitmap.createBitmap(bitmap,0,0,bitmap.width,bitmap.height,matrix,true)
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
 
@@ -110,7 +126,9 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             GALLERY_PERMISSION_REQUEST -> {
-
+                if (PermissionUtility().permissionGranted(requestCode, GALLERY_PERMISSION_REQUEST, grantResults)) {
+                    openGallery()
+                }
             }
             CAMERA_PERMISSION_REQUEST -> {
                 if (PermissionUtility().permissionGranted(requestCode, CAMERA_PERMISSION_REQUEST, grantResults)) {
