@@ -29,4 +29,10 @@ class PermissionUtility {
             return false
         }
     }
+
+    fun permissionGranted(
+        requestCode: Int, permissionCode: Int, grantResult: IntArray
+    ): Boolean {
+        return requestCode == permissionCode && grantResult.size > 0 && grantResult[0] == PackageManager.PERMISSION_GRANTED
+    }
 }
