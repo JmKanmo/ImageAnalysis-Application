@@ -1,7 +1,11 @@
 package com.junmo.imagevisionapplication
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Matrix
+import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
@@ -9,6 +13,7 @@ import android.provider.MediaStore
 import android.support.v4.content.FileProvider
 import android.util.Log
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.main_analyze_view.*
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
@@ -28,13 +33,11 @@ class MainActivity : AppCompatActivity() {
             UploadChooser().apply {
                 addNotifier(object : UploadChooser.UploadChooserNotifierInterface {
                     override fun cameraOnClick() {
-                        Log.d("TAG", "카메라클릭작동")
                         //카메라권한
                         checkCameraPermission()
                     }
 
                     override fun galleryOnClick() {
-                        Log.d("TAG", "갤러리클릭작동")
                         //저장장치권한
                         checkGalleryPermission()
                     }
@@ -69,6 +72,34 @@ class MainActivity : AppCompatActivity() {
             }, CAMERA_PERMISSION_REQUEST
         )
     }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            CAMERA_PERMISSION_REQUEST -> {
+                if (resultCode != Activity.RESULT_OK) {
+                    return
+                }
+                val photoUri =
+                    FileProvider.getUriForFile(this, applicationContext.packageName + ".provider", createCameraFile())
+                uploadImage(photoUri)
+            }
+        }
+    }
+
+    private fun uploadImage(imageUri: Uri) {
+        var bitmap: Bitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageUri)
+        if(bitmap.width>bitmap.height) bitmap = rotateImage(bitmap,-90f)
+        uploaded_image.setImageBitmap(bitmap)
+    }
+
+
+    private fun rotateImage(bitmap: Bitmap , degree:Float):Bitmap{
+        val matrix = Matrix()
+        matrix.postRotate(degree)
+        return Bitmap.createBitmap(bitmap,0,0,bitmap.width,bitmap.height,matrix,true)
+    }
+
 
     private fun createCameraFile(): File {
         val dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
