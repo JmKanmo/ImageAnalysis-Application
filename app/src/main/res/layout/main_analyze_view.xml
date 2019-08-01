@@ -19,6 +19,7 @@
                 android:orientation="vertical">
 
             <TextView
+                    android:id="@+id/result_of_uploaded_image"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/please_upload_image"
