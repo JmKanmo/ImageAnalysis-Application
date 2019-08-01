@@ -6,6 +6,12 @@ import com.google.common.io.BaseEncoding
 import java.lang.Exception
 import java.security.MessageDigest
 
+/*
+    2019.08.02
+    Developer: JM_Kanmo
+    기능: Google cloud package 관리자
+ */
+
 class PackageManageUtil {
     fun getSignature(pm: PackageManager, packageName: String): String? {
         try {

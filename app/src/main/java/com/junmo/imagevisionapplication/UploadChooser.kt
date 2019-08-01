@@ -8,6 +8,12 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.upload_chooser.*
 
+/*
+    2019.08.02
+    Developer: JM_Kanmo
+    기능: 이미지 업로더 관리자
+ */
+
 class UploadChooser : BottomSheetDialogFragment() {
 
     interface UploadChooserNotifierInterface {

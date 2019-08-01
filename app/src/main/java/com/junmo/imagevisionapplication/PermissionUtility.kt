@@ -6,6 +6,12 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import java.security.Permissions
 
+/*
+    2019.08.02
+    Developer: JM_Kanmo
+    기능: 권한요청 유틸리티
+ */
+
 class PermissionUtility {
     fun requestPermission(
         activity: Activity, requestCode: Int, vararg permissions: String
