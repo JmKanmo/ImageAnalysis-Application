@@ -5,4 +5,7 @@
     <string name="image_upload_button_text">이미지업로드</string>
     <string name="camera">카메라</string>
     <string name="gallery">갤러리</string>
+    <string name="detection_label">라벨분석</string>
+    <string name="detection_landmark">랜드마크분석</string>
+    <string name="cancel">취소</string>
 </resources>

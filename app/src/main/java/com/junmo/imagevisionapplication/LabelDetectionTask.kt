@@ -3,15 +3,12 @@ package com.junmo.imagevisionapplication
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.AsyncTask
-import android.util.Log
-import android.widget.TextView
 import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.vision.v1.Vision
 import com.google.api.services.vision.v1.VisionRequest
 import com.google.api.services.vision.v1.VisionRequestInitializer
 import com.google.api.services.vision.v1.model.*
-import kotlinx.android.synthetic.main.main_analyze_view.*
 import java.io.ByteArrayOutputStream
 import java.lang.Exception
 import java.lang.StringBuilder
@@ -35,6 +32,7 @@ class LabelDetectionTask(
     private val ANDROID_CERT_HEADER = "X-Android-Cert"
     private val MAX_LABEL_RESULTS = 10
     private var labelDetectionNotifierInterface: LabelDetectionNotifierInterface? = null
+    private var requestType: String? = null
 
     interface LabelDetectionNotifierInterface {
         fun notifyResult(result: String)
@@ -53,7 +51,7 @@ class LabelDetectionTask(
             //백그라운드 작업수행
             try {
                 val response = request.execute()
-                return convertResponseToString(response)
+                return findProperResponseType(response)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -70,21 +68,33 @@ class LabelDetectionTask(
         }
     }
 
-    private fun convertResponseToString(response: BatchAnnotateImagesResponse): String {
-        val message = StringBuilder("분석결과")
-        val labels = response.responses[0].labelAnnotations
-
-        labels?.let {
-            it.forEach {
-                message.append(String.format(Locale.KOREAN, "%.3f: %s", it.score, it.description))
-                message.append("\n")
+    private fun findProperResponseType(response: BatchAnnotateImagesResponse): String {
+        when (requestType) {
+            activity.Label_Detection_Request -> {
+                return convertResponseToString(response.responses[0].labelAnnotations)
             }
-            return message.toString()
+            activity.Landmark_Detection_Request -> {
+                return convertResponseToString(response.responses[0].landmarkAnnotations)
+            }
         }
         return "분석실패"
     }
 
-    fun requestCloudVisionApi(bitmap: Bitmap, labelDetectionNotifierInterface: LabelDetectionNotifierInterface) {
+    private fun convertResponseToString(labels: List<EntityAnnotation>): String {
+        val message = StringBuilder("분석결과")
+        labels.forEach {
+            message.append(String.format(Locale.KOREAN, "%.3f: %s", it.score, it.description))
+            message.append("\n")
+        }
+        return message.toString()
+    }
+
+    fun requestCloudVisionApi(
+        bitmap: Bitmap,
+        labelDetectionNotifierInterface: LabelDetectionNotifierInterface,
+        requestType: String
+    ) {
+        this.requestType = requestType
         this.labelDetectionNotifierInterface = labelDetectionNotifierInterface
         val visionTask = ImageRequestTask(prepareImageRequest(bitmap))
         visionTask.execute()
@@ -118,7 +128,14 @@ class LabelDetectionTask(
                 annotateImageRequest.features = object : ArrayList<Feature>() {
                     init {
                         val labelDetection = Feature()
-                        labelDetection.type = "LABEL_DETECTION"
+                        when (requestType) {
+                            activity.Label_Detection_Request -> {
+                                labelDetection.type = "LABEL_DETECTION"
+                            }
+                            activity.Landmark_Detection_Request -> {
+                                labelDetection.type = "LANDMARK_DETECTION"
+                            }
+                        }
                         labelDetection.maxResults = MAX_LABEL_RESULTS
                         add(labelDetection)
                     }

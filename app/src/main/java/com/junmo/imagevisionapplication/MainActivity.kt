@@ -13,6 +13,8 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.support.v4.content.FileProvider
 import android.util.Log
+import android.widget.ImageView
+import android.widget.TextView
 import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.vision.v1.Vision
@@ -20,6 +22,7 @@ import com.google.api.services.vision.v1.VisionRequest
 import com.google.api.services.vision.v1.VisionRequestInitializer
 import com.google.api.services.vision.v1.model.*
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.detection_chooser.*
 import kotlinx.android.synthetic.main.main_analyze_view.*
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -41,6 +44,8 @@ class MainActivity : AppCompatActivity() {
     private val GALLERY_PERMISSION_REQUEST = 1001
     private val FILE_NAME = "picture.jpg"
     private var labelDetectionTask: LabelDetectionTask? = null
+    val Label_Detection_Request = "Label_Detection_Request"
+    val Landmark_Detection_Request = "Landmark_Detection_Request"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -118,30 +123,42 @@ class MainActivity : AppCompatActivity() {
                 }
                 val photoUri =
                     FileProvider.getUriForFile(this, applicationContext.packageName + ".provider", createCameraFile())
-                uploadImage(photoUri)
+                uploadImage(photoUri, 0)
             }
             GALLERY_PERMISSION_REQUEST -> {
                 data?.let {
-                    uploadImage(it.data)
+                    uploadImage(it.data, 1)
                 }
             }
         }
     }
 
-    private fun uploadImage(imageUri: Uri) {
+    private fun uploadImage(imageUri: Uri, flag: Int) {
         var bitmap: Bitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageUri)
-        if (bitmap.width > bitmap.height) bitmap = rotateImage(bitmap, -90f)
-        uploaded_image.setImageBitmap(bitmap)
-        requestCloudVisionApi(bitmap)
+        if (flag == 0) bitmap = rotateImage(bitmap, -90f)
+        DetectionChooser().apply {
+            addDetectionChooserNotifierInterface(object : DetectionChooser.DetectionChooserNotifierInterface {
+                override fun detectLabel() {
+                    findViewById<ImageView>(R.id.uploaded_image).setImageBitmap(bitmap)
+                    requestCloudVisionApi(bitmap, Label_Detection_Request)
+                    findViewById<TextView>(R.id.result_of_uploaded_image).text = "이미지분석중"
+                }
+
+                override fun detectLandMark() {
+                    findViewById<ImageView>(R.id.uploaded_image).setImageBitmap(bitmap)
+                    requestCloudVisionApi(bitmap, Landmark_Detection_Request)
+                    findViewById<TextView>(R.id.result_of_uploaded_image).text = "이미지분석중"
+                }
+            })
+        }.show(supportFragmentManager, "")
     }
 
-    private fun requestCloudVisionApi(bitmap: Bitmap) {
+    private fun requestCloudVisionApi(bitmap: Bitmap, requestType: String) {
         labelDetectionTask?.requestCloudVisionApi(bitmap, object : LabelDetectionTask.LabelDetectionNotifierInterface {
             override fun notifyResult(result: String) {
                 result_of_uploaded_image.text = result
             }
-        }
-        )
+        }, requestType)
     }
 
     private fun rotateImage(bitmap: Bitmap, degree: Float): Bitmap {
