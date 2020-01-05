@@ -1,4 +1,4 @@
-# ImageVision App developed by Kotlin
+# ImageAnalysis Application developed by Kotlin
 
 개발언어,환경: Kotlin, Android studio
 
